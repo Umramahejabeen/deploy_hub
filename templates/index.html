@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Deploy | DeployHub{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-7">
+        <div class="card p-4">
+            <h3 class="mb-3">Deploy any GitHub repo in one click</h3>
+            <p class="text-muted">Submit a public GitHub repository. DeployHub will clone it, detect or generate a Dockerfile, build an image, and run it &mdash; automatically.</p>
+            <form action="/deploy" method="POST">
+                <div class="mb-3">
+                    <label class="form-label">GitHub Repo URL</label>
+                    <input type="url" class="form-control" name="repo_url"
+                           placeholder="https://github.com/username/repo" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Branch</label>
+                    <input type="text" class="form-control" name="branch" value="main">
+                </div>
+                <button type="submit" class="btn btn-success w-100">Deploy 🚀</button>
+            </form>
+        </div>
+        <div class="alert alert-secondary mt-3">
+            Supported stacks (auto-Dockerfile generation): <b>Python</b> (requirements.txt) and <b>Node.js</b> (package.json).
+            Any repo with its own <code>Dockerfile</code> is also supported.
+        </div>
+    </div>
+</div>
+{% endblock %}

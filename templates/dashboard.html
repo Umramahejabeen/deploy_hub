@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Dashboard | DeployHub{% endblock %}
+{% block content %}
+<h3 class="mb-4">Your Deployments</h3>
+
+{% if not deployments %}
+    <p class="text-muted">No deployments yet. <a href="/">Deploy your first app</a>.</p>
+{% endif %}
+
+{% for d in deployments %}
+<div class="card mb-3 p-3">
+    <div class="d-flex justify-content-between align-items-start">
+        <div>
+            <h5>{{ d.repo_url }} <small class="text-muted">({{ d.branch }})</small></h5>
+            <span class="badge badge-{{ d.status }}">{{ d.status }}</span>
+            <span class="text-muted ms-2">ID: {{ d.id }}</span>
+            {% if d.port %}
+                <span class="ms-2">→ <a href="http://EC2_PUBLIC_IP:{{ d.port }}" target="_blank" class="text-info">Live URL (port {{ d.port }})</a></span>
+            {% endif %}
+        </div>
+        <div>
+            {% if d.status == "RUNNING" %}
+            <form action="/stop/{{ d.id }}" method="POST" class="d-inline">
+                <button class="btn btn-warning btn-sm">Stop</button>
+            </form>
+            {% endif %}
+            <form action="/delete/{{ d.id }}" method="POST" class="d-inline">
+                <button class="btn btn-danger btn-sm">Delete</button>
+            </form>
+        </div>
+    </div>
+    {% if d.logs_tail %}
+    <details class="mt-2">
+        <summary class="text-muted">View logs</summary>
+        <pre class="bg-dark text-light p-2 mt-2" style="max-height:200px; overflow-y:auto; font-size:0.8rem;">{{ d.logs_tail }}</pre>
+    </details>
+    {% endif %}
+</div>
+{% endfor %}
+{% endblock %}

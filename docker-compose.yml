@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  deployhub:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: deployhub:latest
+    container_name: deployhub-portal
+    ports:
+      - "5000:5000"
+      - "9000-9100:9000-9100"   # port range reserved for user deployments
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock   # allows portal to control host Docker
+      - deployhub_db:/app/instance
+    environment:
+      - DEPLOYHUB_S3_BUCKET=${DEPLOYHUB_S3_BUCKET}
+      - AWS_REGION=${AWS_REGION}
+      - SECRET_KEY=${SECRET_KEY}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  deployhub_db:
