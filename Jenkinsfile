@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        EC2_IP   = "13.201.223.71"           // your EC2 public IP, used for SSH target and smoke test URL
-        REPO_URL = "https://github.com/Umramahejabeen/deploy_hub.git"
+        EC2_IP   = "YOUR_EC2_PUBLIC_IP"           // your EC2 public IP, used for SSH target and smoke test URL
+        REPO_URL = "https://github.com/<your-username>/deployhub.git"
     }
 
     stages {
@@ -40,7 +40,7 @@ pipeline {
             // on Windows.
             steps {
                 withCredentials([sshUserPrivateKey(
-                    credentialsId: 'ec2-ssh-key',
+                    credentialsId: 'ec2-ssh-key-deployhub',
                     keyFileVariable: 'SSH_KEY',
                     usernameVariable: 'SSH_USER'
                 )]) {
