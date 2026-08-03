@@ -2,9 +2,8 @@ pipeline {
     agent any
 
     environment {
-            EC2_HOST = "ubuntu"
-            EC2_IP   = "13.201.223.71"
-            REPO_URL = "https://github.com/Umramahejabeen/deploy_hub.git"
+        EC2_IP   = "13.201.223.71"           // your EC2 public IP, used for SSH target and smoke test URL
+        REPO_URL = "https://github.com/Umramahejabeen/deploy_hub.git"
     }
 
     stages {
@@ -32,10 +31,21 @@ pipeline {
         stage('Build & Deploy on EC2') {
             // Everything Docker-related happens over SSH, using EC2's own
             // Docker daemon. Jenkins itself never touches Docker.
+            //
+            // NOTE: we use withCredentials + sshUserPrivateKey instead of the
+            // sshagent() step. The SSH Agent plugin's ssh-agent implementation
+            // is unreliable on Windows Jenkins agents and throws a
+            // StringIndexOutOfBoundsException. withCredentials writes the key
+            // to a temp file and calls `ssh -i` directly, which works fine
+            // on Windows.
             steps {
-                sshagent(credentials: ['ec2-ssh-key']) {
+                withCredentials([sshUserPrivateKey(
+                    credentialsId: 'ec2-ssh-key',
+                    keyFileVariable: 'SSH_KEY',
+                    usernameVariable: 'SSH_USER'
+                )]) {
                     bat """
-                        ssh -o StrictHostKeyChecking=no %EC2_HOST% ^
+                        ssh -o StrictHostKeyChecking=no -i "%SSH_KEY%" %SSH_USER%@%EC2_IP% ^
                         "cd ~/deployhub && (git pull origin main || git clone %REPO_URL% .) && docker compose up -d --build"
                     """
                 }
