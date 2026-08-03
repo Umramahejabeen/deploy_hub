@@ -214,7 +214,7 @@ into EC2 and tells EC2's Docker what to do.)
 ### 5.2 Add credentials
 Jenkins → Manage Jenkins → Credentials → System → Global credentials:
 
-1. **EC2 SSH key** — Kind: SSH Username with private key, ID: `ec2-ssh-key`,
+1. **EC2 SSH key** — Kind: SSH Username with private key, ID: `ec2-ssh-key-deployhub`,
    Username: `ubuntu`, Private key: paste contents of `deployhub-key.pem`
 
 That's the only credential you need now — no Docker Hub account required.
