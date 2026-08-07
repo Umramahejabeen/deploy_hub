@@ -46,7 +46,8 @@ pipeline {
                 )]) {
                     bat """
                         icacls "%SSH_KEY%" /inheritance:r
-                        icacls "%SSH_KEY%" /grant:r "%USERNAME%:R"
+                        icacls "%SSH_KEY%" /grant:r "SYSTEM:R"
+                        icacls "%SSH_KEY%" /grant:r "Administrators:R"
                         ssh -o StrictHostKeyChecking=no -i "%SSH_KEY%" %SSH_USER%@%EC2_IP% ^
                         "cd ~/deployhub && (git pull origin main || git clone %REPO_URL% .) && docker compose up -d --build"
                     """
