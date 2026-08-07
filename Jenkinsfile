@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        EC2_IP   = "13.201.223.71"           // your EC2 public IP, used for SSH target and smoke test URL
+        EC2_IP   = "65.1.3.237"           // your EC2 public IP, used for SSH target and smoke test URL
         REPO_URL = "https://github.com/Umramahejabeen/deploy_hub.git"
     }
 
