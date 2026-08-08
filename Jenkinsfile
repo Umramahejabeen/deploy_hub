@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        EC2_IP   = "YOUR_EC2_PUBLIC_IP"           // your EC2 public IP, used for SSH target and smoke test URL
-        REPO_URL = "https://github.com/<your-username>/deployhub.git"
+        EC2_IP   = "13.204.44.212"           // your EC2 public IP, used for SSH target and smoke test URL
+        REPO_URL = "https://github.com/Umramahejabeen/deploy_hub.git"
     }
 
     stages {
