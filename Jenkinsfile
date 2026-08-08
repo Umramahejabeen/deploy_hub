@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        EC2_IP   = "13.204.44.212"           // your EC2 public IP, used for SSH target and smoke test URL
-        REPO_URL = "https://github.com/Umramahejabeen/deploy_hub.git"
+        EC2_IP   = "YOUR_EC2_PUBLIC_IP"           // your EC2 public IP, used for SSH target and smoke test URL
+        REPO_URL = "https://github.com/<your-username>/deployhub.git"
     }
 
     stages {
@@ -39,18 +39,20 @@ pipeline {
             // to a temp file and calls `ssh -i` directly, which works fine
             // on Windows.
             steps {
-                withCredentials([sshUserPrivateKey(
-                    credentialsId: 'ec2-ssh-key-deployhub',
-                    keyFileVariable: 'SSH_KEY',
-                    usernameVariable: 'SSH_USER'
-                )]) {
-                    bat """
-                        icacls "%SSH_KEY%" /inheritance:r
-                        icacls "%SSH_KEY%" /grant:r "SYSTEM:R"
-                        icacls "%SSH_KEY%" /grant:r "Administrators:R"
-                        ssh -o StrictHostKeyChecking=no -i "%SSH_KEY%" %SSH_USER%@%EC2_IP% ^
-                        "cd ~/deployhub && (git pull origin main || git clone %REPO_URL% .) && docker compose up -d --build"
-                    """
+                retry(2) {
+                    withCredentials([sshUserPrivateKey(
+                        credentialsId: 'ec2-ssh-key-deployhub',
+                        keyFileVariable: 'SSH_KEY',
+                        usernameVariable: 'SSH_USER'
+                    )]) {
+                        bat """
+                            icacls "%SSH_KEY%" /inheritance:r
+                            icacls "%SSH_KEY%" /grant:r "SYSTEM:R"
+                            icacls "%SSH_KEY%" /grant:r "Administrators:R"
+                            ssh -o StrictHostKeyChecking=no -i "%SSH_KEY%" %SSH_USER%@%EC2_IP% ^
+                            "mkdir -p ~/deployhub && cd ~/deployhub && if [ -d .git ]; then git pull origin main; else git clone %REPO_URL% .; fi && docker compose up -d --build"
+                        """
+                    }
                 }
             }
         }
