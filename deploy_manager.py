@@ -19,7 +19,21 @@ PORT_RANGE_END = 9100
 S3_BUCKET = os.environ.get("DEPLOYHUB_S3_BUCKET", "deployhub-logs-bucket")
 AWS_REGION = os.environ.get("AWS_REGION", "ap-south-1")
 
-docker_client = docker.from_env()
+# Docker client is created lazily (on first actual use), not at import time.
+# This lets app.py/deploy_manager.py be imported safely on machines without
+# a Docker daemon (e.g. the Jenkins/Windows machine running pytest) -
+# the connection is only attempted when a deployment is actually run,
+# which only ever happens on EC2 where Docker is present.
+_docker_client = None
+
+
+def get_docker_client():
+    global _docker_client
+    if _docker_client is None:
+        _docker_client = docker.from_env()
+    return _docker_client
+
+
 s3_client = boto3.client("s3", region_name=AWS_REGION)
 
 
@@ -132,7 +146,7 @@ def run_deployment_pipeline(app, deploy_id, repo_url, branch):
         # 3. BUILD IMAGE
         _update(app, deploy_id, status="BUILDING")
         image_tag = f"deployhub/{deploy_id}:latest"
-        image, build_logs = docker_client.images.build(path=repo_path, tag=image_tag, rm=True)
+        image, build_logs = get_docker_client().images.build(path=repo_path, tag=image_tag, rm=True)
 
         build_log_text = ""
         for chunk in build_logs:
@@ -146,7 +160,7 @@ def run_deployment_pipeline(app, deploy_id, repo_url, branch):
         # NOTE: we map host_port -> container port 5000 (Python default) or 3000 (Node)
         internal_port = 3000 if os.path.exists(os.path.join(repo_path, "package.json")) else 5000
 
-        container = docker_client.containers.run(
+        container = get_docker_client().containers.run(
             image_tag,
             detach=True,
             ports={f"{internal_port}/tcp": port},
@@ -186,7 +200,7 @@ def stop_container(container_id):
     if not container_id:
         return
     try:
-        c = docker_client.containers.get(container_id)
+        c = get_docker_client().containers.get(container_id)
         c.stop()
     except docker.errors.NotFound:
         pass
@@ -196,7 +210,7 @@ def remove_container(container_id):
     if not container_id:
         return
     try:
-        c = docker_client.containers.get(container_id)
+        c = get_docker_client().containers.get(container_id)
         c.stop()
         c.remove()
     except docker.errors.NotFound:
